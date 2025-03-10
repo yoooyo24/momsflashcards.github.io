@@ -781,22 +781,27 @@
             touchStartY = event.changedTouches[0].screenY;
         }, {passive: true});
 
+        // Replace your touchend handler with this improved version
         document.getElementById("flashcard").addEventListener("touchend", function(event) {
             touchEndX = event.changedTouches[0].screenX;
             touchEndY = event.changedTouches[0].screenY;
             
-            // Check if it's a tap (minimal movement) or a swipe
-            const deltaX = touchEndX - touchStartX;
-            const deltaY = touchEndY - touchStartY;
+            // Calculate absolute movement distance
+            const deltaX = Math.abs(touchEndX - touchStartX);
+            const deltaY = Math.abs(touchEndY - touchStartY);
             
-            // If minimal movement, it's a tap to flip
-            if (Math.abs(deltaX) < 20 && Math.abs(deltaY) < 20) {
+            // If it was a tap (very little movement)
+            if (deltaX < 10 && deltaY < 10) {
+                // Make sure we're not tapping on the bookmark button
                 if (!event.target.closest('#bookmark-btn')) {
-                    flipCard();
+                    // Explicitly toggle the flipped state
+                    const card = document.getElementById("flashcard");
+                    card.classList.toggle("flipped");
                 }
             } else {
-                // Otherwise it's a swipe
-                handleSwipe(deltaX);
+                // It's a swipe
+                const swipeDirection = touchEndX - touchStartX;
+                handleSwipe(swipeDirection);
             }
         }, {passive: true});
 
