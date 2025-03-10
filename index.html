@@ -162,6 +162,7 @@
 
         .navigation button:active { transform: scale(0.9); }
 
+        /* Update the bookmark button styling to ensure visibility */
         .bookmark-btn {
             position: absolute;
             top: 10px;
@@ -173,6 +174,12 @@
             cursor: pointer;
             z-index: 10;
             transition: color 0.3s;
+            padding: 5px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .bookmark-btn i {
@@ -439,6 +446,12 @@
             .banner-text {
                 font-size: 12px;
             }
+
+            .bookmark-btn {
+                top: 5px;
+                right: 5px;
+                font-size: 20px; /* Smaller on mobile */
+            }
         }
 
         /* Add these styles to your CSS section for a more visible barber pole */
@@ -533,6 +546,9 @@
         </div>
         <div class="flashcard-container">
             <div id="flashcard" class="flashcard">
+                <button id="bookmark-btn" class="bookmark-btn" title="Bookmark this card">
+                    <i class="far fa-bookmark"></i>
+                </button>
                 <div class="front"></div>
                 <div class="back"></div>
             </div>
@@ -744,33 +760,54 @@
         setCardText();
 
         // Event listeners
-        document.getElementById("flashcard").addEventListener("click", flipCard);
+        document.getElementById("flashcard").addEventListener("click", function(e) {
+            // Don't flip if they clicked the bookmark button
+            if (e.target.closest('#bookmark-btn')) return;
+            flipCard();
+        });
+
         document.getElementById("next").addEventListener("click", nextCard);
         document.getElementById("prev").addEventListener("click", prevCard);
         document.getElementById("bookmark-btn").addEventListener("click", toggleBookmark);
 
-        // Add swipe functionality for mobile
+        // Improved mobile swipe detection
         let touchStartX = 0;
+        let touchStartY = 0; 
         let touchEndX = 0;
+        let touchEndY = 0;
 
         document.getElementById("flashcard").addEventListener("touchstart", function(event) {
             touchStartX = event.changedTouches[0].screenX;
-        }, false);
+            touchStartY = event.changedTouches[0].screenY;
+        }, {passive: true});
 
         document.getElementById("flashcard").addEventListener("touchend", function(event) {
             touchEndX = event.changedTouches[0].screenX;
-            handleSwipe();
-        }, false);
-
-        function handleSwipe() {
-            const swipeThreshold = 50; // Minimum swipe distance
+            touchEndY = event.changedTouches[0].screenY;
             
-            if (touchEndX < touchStartX - swipeThreshold) {
+            // Check if it's a tap (minimal movement) or a swipe
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+            
+            // If minimal movement, it's a tap to flip
+            if (Math.abs(deltaX) < 20 && Math.abs(deltaY) < 20) {
+                if (!event.target.closest('#bookmark-btn')) {
+                    flipCard();
+                }
+            } else {
+                // Otherwise it's a swipe
+                handleSwipe(deltaX);
+            }
+        }, {passive: true});
+
+        // Updated handleSwipe function
+        function handleSwipe(deltaX) {
+            const swipeThreshold = 50;
+            
+            if (deltaX < -swipeThreshold) {
                 // Swipe left - next card
                 nextCard();
-            }
-            
-            if (touchEndX > touchStartX + swipeThreshold) {
+            } else if (deltaX > swipeThreshold) {
                 // Swipe right - previous card
                 prevCard();
             }
