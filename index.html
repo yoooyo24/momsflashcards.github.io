@@ -769,54 +769,6 @@
         document.getElementById("next").addEventListener("click", nextCard);
         document.getElementById("prev").addEventListener("click", prevCard);
         document.getElementById("bookmark-btn").addEventListener("click", toggleBookmark);
-
-        // Improved mobile swipe detection
-        let touchStartX = 0;
-        let touchStartY = 0; 
-        let touchEndX = 0;
-        let touchEndY = 0;
-
-        document.getElementById("flashcard").addEventListener("touchstart", function(event) {
-            touchStartX = event.changedTouches[0].screenX;
-            touchStartY = event.changedTouches[0].screenY;
-        }, {passive: true});
-
-        // Replace your touchend handler with this improved version
-        document.getElementById("flashcard").addEventListener("touchend", function(event) {
-            touchEndX = event.changedTouches[0].screenX;
-            touchEndY = event.changedTouches[0].screenY;
-            
-            // Calculate absolute movement distance
-            const deltaX = Math.abs(touchEndX - touchStartX);
-            const deltaY = Math.abs(touchEndY - touchStartY);
-            
-            // If it was a tap (very little movement)
-            if (deltaX < 10 && deltaY < 10) {
-                // Make sure we're not tapping on the bookmark button
-                if (!event.target.closest('#bookmark-btn')) {
-                    // Explicitly toggle the flipped state
-                    const card = document.getElementById("flashcard");
-                    card.classList.toggle("flipped");
-                }
-            } else {
-                // It's a swipe
-                const swipeDirection = touchEndX - touchStartX;
-                handleSwipe(swipeDirection);
-            }
-        }, {passive: true});
-
-        // Updated handleSwipe function
-        function handleSwipe(deltaX) {
-            const swipeThreshold = 50;
-            
-            if (deltaX < -swipeThreshold) {
-                // Swipe left - next card
-                nextCard();
-            } else if (deltaX > swipeThreshold) {
-                // Swipe right - previous card
-                prevCard();
-            }
-        }
     </script>
 </body>
 </html>
