@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Flashcards for Mom</title>
+    <!-- Font Awesome for scissors and comb icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <!-- Google Fonts for custom font -->
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        /** Header Styles **/
+        header {
+            padding: 20px;
+            background-color: #e6f7ff;
+            border-bottom: 2px solid #ccc;
+            text-align: center;
+        }
+
+        .header-top {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .icons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 10px;
+        }
+
+        .icons i {
+            font-size: 24px;
+            color: #555;
+        }
+
+        .barber-pole {
+            width: 15px;
+            height: 40px;
+            background: repeating-linear-gradient(
+                45deg,
+                red 0px, red 5px,
+                white 5px, white 10px,
+                blue 10px, blue 15px,
+                white 15px, white 20px
+            );
+            animation: spin 4s linear infinite;
+            border: 1px solid black;
+            border-radius: 5px;
+        }
+
+        @keyframes spin {
+            0% { background-position: 0 0; }
+            100% { background-position: 20px 0; }
+        }
+
+        h1 {
+            font-family: 'Pacifico', cursive;
+            font-size: 2.5em;
+            color: #333;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            animation: welcome 1s ease-in-out;
+        }
+
+        @keyframes welcome {
+            from { opacity: 0; transform: translateY(-20px) scale(0.5); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /** Navigation and Main Content **/
+        nav ul {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            padding: 30px 0; /* Increased padding for spacing */
+            flex-wrap: wrap;
+        }
+
+        nav li { margin: 0 10px; }
+        nav a { text-decoration: none; color: #333; }
+        nav a.active { font-weight: bold; color: #007bff; }
+
+        .main-container {
+            display: flex;
+            padding: 40px 20px; /* Increased top padding for more scrolling space */
+        }
+
+        /** Sidebar and Flashcard Styles **/
+        .sidebar {
+            width: 200px;
+            background-color: #e0e0e0;
+            padding: 10px;
+            border-right: 1px solid #ccc;
+        }
+
+        .sidebar h2 { margin: 0 0 10px 0; font-size: 16px; }
+        .sidebar ul { list-style: none; padding: 0; }
+        .sidebar li {
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .sidebar li.active { background-color: #ccc; }
+
+        .flashcard-container {
+            margin-left: 20px;
+            perspective: 1000px;
+        }
+
+        .flashcard {
+            width: 300px;
+            height: 200px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s ease-in-out;
+            cursor: pointer;
+        }
+
+        .flashcard.flipped { transform: rotateY(180deg); }
+
+        .front, .back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            box-sizing: border-box;
+            font-size: 18px;
+            text-align: center;
+            border: 1px solid #ccc;
+            background-color: white;
+        }
+
+        .back { transform: rotateY(180deg); }
+        .flashcard:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+
+        .navigation {
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .navigation button {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            margin: 0 5px;
+            font-size: 16px;
+            transition: transform 0.1s;
+        }
+
+        .navigation button:active { transform: scale(0.9); }
+
+        .bookmark-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #888;
+            cursor: pointer;
+            z-index: 10;
+            transition: color 0.3s;
+        }
+
+        .bookmark-btn i {
+            transition: transform 0.3s;
+        }
+
+        .bookmark-btn:hover i {
+            transform: scale(1.2);
+            color: #ff6b6b;
+        }
+
+        .bookmark-btn.active i {
+            color: #ff6b6b;
+        }
+
+        .bookmark-btn.active i::before {
+            content: "\f02e"; /* Solid bookmark icon */
+        }
+
+        /* Add this to your style section */
+        .card-status {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #666;
+            display: none; /* Hidden by default */
+        }
+
+        #swipe-hint {
+            display: block;
+            font-style: italic;
+            margin-top: 5px;
+        }
+
+        /* Add this to your style section */
+        .not-ready {
+            font-size: 0.8em;
+            color: #ff6b6b;
+            font-style: italic;
+        }
+
+        /* Add to your style section */
+        .nav-separator {
+            height: 1px;
+            background-color: #ccc;
+            width: 80%;
+            margin: 15px auto;
+        }
+
+        .bookmarked-nav a {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+
+        .bookmarked-nav a::before {
+            content: "\f02e"; /* Solid bookmark icon */
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            margin-right: 8px;
+        }
+
+        /* Add these styles to your CSS */
+        .sub-menu {
+            list-style-type: none;
+            padding-left: 20px;
+            margin: 5px 0 10px 0;
+        }
+
+        .sub-menu li {
+            margin: 5px 0;
+            font-size: 0.95em;
+        }
+
+        .chapter-link {
+            color: #0066cc !important;
+            position: relative;
+        }
+
+        .chapter-link::before {
+            content: "→";
+            margin-right: 5px;
+            color: #666;
+        }
+
+        /* Add these styles to your CSS section */
+        .barber-banner {
+            position: relative;
+            width: 90px; /* Larger width */
+            height: 45px; /* Larger height */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid #333;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .banner-pole {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                45deg,
+                #cf0000 0px, #cf0000 10px,
+                white 10px, white 20px,
+                #0046ca 20px, #0046ca 30px,
+                white 30px, white 40px
+            );
+            opacity: 0.4; /* More visible background */
+            animation: slide 8s linear infinite;
+        }
+
+        .banner-text {
+            position: relative;
+            z-index: 1;
+            font-weight: bold;
+            font-family: 'Arial', sans-serif;
+            font-size: 16px;
+            color: #000;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 0px white;
+        }
+
+        @keyframes slide {
+            from { background-position: 0 0; }
+            to { background-position: 40px 0; }
+        }
+
+        /** Responsive Design **/
+        @media (max-width: 600px) {
+            .header-top { flex-direction: column; }
+            .icons { gap: 15px; }
+            h1 { font-size: 2em; }
+            .main-container { flex-direction: column; }
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #ccc;
+            }
+            .flashcard-container {
+                margin-left: 0;
+                margin-top: 20px;
+            }
+        }
+
+        /* Update your @media query for better mobile experience */
+        @media (max-width: 768px) {
+            /* Header improvements */
+            .icons {
+                gap: 30px; /* More space between icons */
+            }
+            
+            .icons i {
+                font-size: 20px; /* Slightly smaller icons */
+            }
+            
+            .barber-pole {
+                width: 12px;
+                height: 30px; /* Smaller pole */
+            }
+            
+            h1 {
+                font-size: 2.2em;
+                margin-top: 15px;
+            }
+            
+            /* Navigation improvements */
+            nav ul {
+                padding: 15px 0;
+            }
+            
+            nav li {
+                margin: 5px;
+            }
+            
+            /* Main container layout */
+            .main-container {
+                flex-direction: column;
+                padding: 20px 10px;
+            }
+            
+            /* Sidebar improvements */
+            .sidebar {
+                width: 100%;
+                max-height: 150px; /* Limit height */
+                overflow-y: auto; /* Allow scrolling */
+                border-right: none;
+                border-bottom: 1px solid #ccc;
+                margin-bottom: 20px;
+            }
+            
+            /* Flashcard improvements */
+            .flashcard-container {
+                margin-left: 0;
+                margin-top: 20px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .flashcard {
+                width: 90%; /* Use percentage width */
+                max-width: 300px; /* But with max-width */
+                height: 180px; /* Slightly shorter */
+            }
+            
+            /* Navigation buttons */
+            .navigation {
+                width: 100%;
+                display: flex;
+                justify-content: space-around;
+                margin-top: 20px;
+            }
+            
+            .navigation button {
+                padding: 15px 25px; /* Larger tap targets */
+                font-size: 20px; /* Larger arrows */
+            }
+
+            .card-status {
+                display: block; /* Only show on mobile */
+            }
+            
+            /* Make nav items stack on mobile */
+            nav ul {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            nav li {
+                margin: 8px 0;
+                width: 100%;
+                text-align: center;
+            }
+
+            .nav-separator {
+                width: 100%;
+                margin: 20px 0;
+            }
+            
+            .bookmarked-nav {
+                margin-top: 10px;
+            }
+
+            .sub-menu {
+                padding-left: 15px;
+                width: 90%;
+            }
+            
+            nav li a, .sub-menu li a {
+                white-space: normal;
+                word-wrap: break-word;
+                display: inline-block;
+            }
+
+            .barber-banner {
+                width: 70px;
+                height: 35px;
+            }
+            
+            .banner-text {
+                font-size: 12px;
+            }
+        }
+
+        /* Add these styles to your CSS section for a more visible barber pole */
+        .barber-shop-pole {
+            width: 25px; /* Wider */
+            height: 60px; /* Taller */
+            position: relative;
+            background: #f8f8f8;
+            border: 2px solid #333; /* Thicker border */
+            border-radius: 3px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .pole-stripes {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                #ff0000 0px,
+                #ff0000 10px,
+                #ffffff 10px,
+                #ffffff 20px,
+                #0000dd 20px,
+                #0000dd 30px,
+                #ffffff 30px,
+                #ffffff 40px
+            );
+            animation: pole-animation 6s linear infinite; /* Slightly faster */
+        }
+
+        .pole-ball {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 28px; /* Larger ball */
+            height: 28px;
+            background: #ffdd00;
+            border: 2px solid #333; /* Thicker border */
+            border-radius: 50%;
+            z-index: 2;
+        }
+
+        @keyframes pole-animation {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-50%); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-top">
+            <div class="icons">
+                <div class="barber-banner">
+                    <div class="banner-pole"></div>
+                    <span class="banner-text">BARBER</span>
+                </div>
+                <div class="barber-shop-pole">
+                    <div class="pole-stripes"></div>
+                    <div class="pole-ball"></div>
+                </div>
+            </div>
+            <h1>Hi mom</h1>
+            <p style="font-size: 1.2em; color: #555; margin-top: 10px;">You've got this, Mom!</p>
+        </div>
+    </header>
+
+    <nav>
+        <ul>
+            <!-- Update just the Part 2 navigation item -->
+            <li><a href="#" data-section="part2" class="active">Part 2: General Sciences</a>
+                <ul class="sub-menu">
+                    <li><a href="#" data-section="part5" class="chapter-link">Chapter 5: Infection Control</a></li>
+                </ul>
+            </li>
+            <li><a href="#" data-section="part3">Part 3: Hair Care <span class="not-ready">(not ready yet)</span></a></li>
+            <li><a href="#" data-section="part4">Part 4: Skin Care <span class="not-ready">(not ready yet)</span></a></li>
+            <li><a href="#" data-section="part6">Part 6: Business Skills <span class="not-ready">(not ready yet)</span></a></li>
+            <li class="nav-separator"></li>
+            <li class="bookmarked-nav"><a href="#" data-section="bookmarked">Bookmarked Flashcards</a></li>
+        </ul>
+    </nav>
+
+    <div class="main-container">
+        <div class="sidebar">
+            <h2 id="section-title"></h2>
+            <ul id="card-list"></ul>
+        </div>
+        <div class="flashcard-container">
+            <div id="flashcard" class="flashcard">
+                <div class="front"></div>
+                <div class="back"></div>
+            </div>
+            <div class="navigation">
+                <button id="prev">←</button>
+                <button id="next">→</button>
+            </div>
+            <!-- Add this right after the navigation buttons div -->
+            <div class="card-status">
+                <span id="card-counter"></span>
+                <span id="swipe-hint">Swipe to navigate cards</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Flashcard data with new Part 5
+        const sections = {
+            part2: [
+                { question: "What sterilizes barber tools?", answer: "Barbicide" },
+                { question: "What is pH in chemistry?", answer: "Measure of acidity" },
+                { question: "What gas do plants need?", answer: "Carbon dioxide" }
+            ],
+            part3: [
+                { question: "What tool cuts hair?", answer: "Shears" },
+                { question: "What is hair made of?", answer: "Keratin" }
+            ],
+            part4: [
+                { question: "What skin needs hydration?", answer: "Dry skin" },
+                { question: "What protects skin from sun?", answer: "Sunscreen" }
+            ],
+            part5: [
+                { question: "What does OSHA stand for?", answer: "Occupational Safety and Health Administration" },
+                { question: "What is the purpose of OSHA in salons?", answer: "To regulate and enforce safety and health standards to protect employees in the workplace" },
+                { question: "What is the Hazard Communication Standard (HCS)?", answer: "A standard that requires chemical manufacturers to assess and communicate potential hazards of their products" },
+                { question: "What replaced the Material Safety Data Sheet (MSDS)?", answer: "Safety Data Sheet (SDS)" },
+                { question: "What is the Globally Harmonized System (GHS)?", answer: "A system for standardizing chemical classification and labeling globally, adopted by OSHA in 2012" },
+                { question: "How many categories does an SDS contain?", answer: "16 categories" },
+                { question: "What does the 'Identification' category in an SDS include?", answer: "Product identifier, manufacturer/distributor info, recommended use, and restrictions" },
+                { question: "Why must salons keep SDSs available?", answer: "To inform employees of hazardous materials and comply with OSHA and state regulations" },
+                { question: "What happens if a salon doesn’t have SDSs available?", answer: "It poses a health risk and violates federal/state regulations, potentially leading to fines" },
+                { question: "What does the EPA do in cosmetology?", answer: "Registers all disinfectants sold and used in the U.S." },
+                { question: "What are hospital disinfectants?", answer: "EPA-designated disinfectants effective for hospital settings, used on nonporous surfaces in salons" },
+                { question: "What are tuberculocidal disinfectants?", answer: "Disinfectants that kill tuberculosis bacteria, in addition to other pathogens" },
+                { question: "Why might tuberculocidal disinfectants not be ideal for salons?", answer: "They can harm salon tools and may require special disposal methods" },
+                { question: "What happens if you use a disinfectant against its label instructions?", answer: "It violates federal law, and you could be held responsible in a lawsuit" },
+                { question: "What do state regulatory agencies do in salons?", answer: "Protect health and safety, regulate licensing, enforce rules, and conduct inspections" },
+                { question: "What’s the difference between laws and rules in cosmetology?", answer: "Laws define the scope of practice; rules specify how laws are applied and can be updated frequently" },
+                { question: "What is Mycobacterium fortuitum?", answer: "A bacterium in tap water that can cause infections, once thought harmless" },
+                { question: "Why are cosmetologists not allowed to treat infections?", answer: "They must refer clients with infections to physicians, as it’s outside their scope of practice" }
+            ],
+            part6: [
+                { question: "Key business skill?", answer: "Customer retention" },
+                { question: "What is profit?", answer: "Revenue minus costs" }
+            ],
+            bookmarked: []
+        };
+
+        let currentSection = "part2";
+        let currentIndex = 0;
+
+        // Update this part of the loadSidebar function
+        function loadSidebar() {
+            const sectionTitle = document.getElementById("section-title");
+            const cardList = document.getElementById("card-list");
+            const cards = sections[currentSection];
+            
+            // Custom title formatting for part5
+            let titleText = "";
+            if (currentSection === "part5") {
+                titleText = "Part 2 - Chapter 5: Infection Control - " + cards.length + " cards";
+            } else {
+                titleText = `${currentSection.replace('part', 'Part ').replace('bookmarked', 'Bookmarked')} - ${cards.length} cards`;
+            }
+            
+            sectionTitle.textContent = titleText;
+            
+            // Rest of the function remains the same
+            cardList.innerHTML = "";
+            cards.forEach((card, index) => {
+                const li = document.createElement("li");
+                li.textContent = card.question;
+                if (index === currentIndex) li.classList.add("active");
+                li.addEventListener("click", () => {
+                    currentIndex = index;
+                    setCardText();
+                    updateSidebar();
+                });
+                cardList.appendChild(li);
+            });
+        }
+
+        // Update the setCardText function to include card counter
+        function setCardText() {
+            const card = sections[currentSection][currentIndex];
+            document.querySelector(".front").textContent = card.question;
+            document.querySelector(".back").textContent = card.answer;
+            document.getElementById("flashcard").classList.remove("flipped");
+            
+            // Update bookmark button status
+            const isBookmarked = sections.bookmarked.some(bookmarked => 
+                bookmarked.question === card.question && 
+                bookmarked.answer === card.answer
+            );
+            document.getElementById("bookmark-btn").classList.toggle("active", isBookmarked);
+            
+            // Update card counter for mobile
+            const cardCounter = document.getElementById("card-counter");
+            if (cardCounter) {
+                cardCounter.textContent = `Card ${currentIndex + 1} of ${sections[currentSection].length}`;
+            }
+        }
+
+        function flipCard() {
+            document.getElementById("flashcard").classList.toggle("flipped");
+        }
+
+        function nextCard() {
+            currentIndex = (currentIndex + 1) % sections[currentSection].length;
+            setCardText();
+            updateSidebar();
+        }
+
+        function prevCard() {
+            currentIndex = (currentIndex - 1 + sections[currentSection].length) % sections[currentSection].length;
+            setCardText();
+            updateSidebar();
+        }
+
+        function updateSidebar() {
+            const listItems = document.querySelectorAll("#card-list li");
+            listItems.forEach((li, index) => {
+                li.classList.toggle("active", index === currentIndex);
+            });
+        }
+
+        document.querySelectorAll('nav a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentSection = e.target.getAttribute('data-section');
+                currentIndex = 0;
+                loadSidebar();
+                setCardText();
+                updateSidebar();
+                document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+                e.target.classList.add('active');
+            });
+        });
+
+        // Load bookmarks from localStorage when page loads
+        function loadBookmarksFromStorage() {
+            const savedBookmarks = localStorage.getItem('mom-flashcards-bookmarks');
+            if (savedBookmarks) {
+                sections.bookmarked = JSON.parse(savedBookmarks);
+            }
+        }
+
+        // Save bookmarks to localStorage whenever they change
+        function saveBookmarksToStorage() {
+            localStorage.setItem('mom-flashcards-bookmarks', JSON.stringify(sections.bookmarked));
+        }
+
+        // Toggle bookmark status
+        function toggleBookmark(event) {
+            // Stop the card from flipping
+            event.stopPropagation();
+            
+            const currentCard = sections[currentSection][currentIndex];
+            
+            // Check if this card is already bookmarked
+            const bookmarkIndex = sections.bookmarked.findIndex(card => 
+                card.question === currentCard.question && 
+                card.answer === currentCard.answer
+            );
+            
+            if (bookmarkIndex === -1) {
+                // Add to bookmarks
+                sections.bookmarked.push({...currentCard});
+                document.getElementById("bookmark-btn").classList.add("active");
+            } else {
+                // Remove from bookmarks
+                sections.bookmarked.splice(bookmarkIndex, 1);
+                document.getElementById("bookmark-btn").classList.remove("active");
+            }
+            
+            // Save changes to localStorage
+            saveBookmarksToStorage();
+            
+            // Update sidebar if we're in bookmarked section
+            if (currentSection === "bookmarked") {
+                loadSidebar();
+                if (sections.bookmarked.length === 0) {
+                    // Redirect to part2 if no bookmarks left
+                    currentSection = "part2";
+                    document.querySelectorAll('nav a').forEach(a => {
+                        a.classList.toggle('active', a.getAttribute('data-section') === 'part2');
+                    });
+                    loadSidebar();
+                    setCardText();
+                }
+            }
+        }
+
+        // Add these lines right before the "Initial load" comment:
+        loadBookmarksFromStorage();
+
+        // Initial load
+        loadSidebar();
+        setCardText();
+
+        // Event listeners
+        document.getElementById("flashcard").addEventListener("click", flipCard);
+        document.getElementById("next").addEventListener("click", nextCard);
+        document.getElementById("prev").addEventListener("click", prevCard);
+        document.getElementById("bookmark-btn").addEventListener("click", toggleBookmark);
+
+        // Add swipe functionality for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.getElementById("flashcard").addEventListener("touchstart", function(event) {
+            touchStartX = event.changedTouches[0].screenX;
+        }, false);
+
+        document.getElementById("flashcard").addEventListener("touchend", function(event) {
+            touchEndX = event.changedTouches[0].screenX;
+            handleSwipe();
+        }, false);
+
+        function handleSwipe() {
+            const swipeThreshold = 50; // Minimum swipe distance
+            
+            if (touchEndX < touchStartX - swipeThreshold) {
+                // Swipe left - next card
+                nextCard();
+            }
+            
+            if (touchEndX > touchStartX + swipeThreshold) {
+                // Swipe right - previous card
+                prevCard();
+            }
+        }
+    </script>
+</body>
+</html>
